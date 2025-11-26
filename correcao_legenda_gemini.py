@@ -31,10 +31,10 @@ def corrigir_legenda_gemini(legenda_srt, letra):
         "Corrija apenas os trechos que não estejam gramaticalmente ou literalmente corretos, sem alucinar, mantendo os timestamps. "
         "Retorne o arquivo SRT corrigido.\n\nLetra:\n" + letra + "\n\nLegenda SRT:\n" + legenda_srt
     )
-    response = genai.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        config=config_genai
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    response = model.generate_content(
+        prompt,
+        generation_config=config_genai
     )
     return response.text
 
