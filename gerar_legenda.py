@@ -19,6 +19,7 @@ def ler_letra(letra_path):
     with open(letra_path, encoding="utf-8") as f:
         return f.read()
 
+
 # Função para gerar legendas SRT a partir dos segmentos
 def gerar_srt(segments, output_path):
     subs = []
@@ -36,9 +37,9 @@ def gerar_srt(segments, output_path):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Gera legenda SRT a partir de áudio MP3 e letra da música.")
-    parser.add_argument("--audio", required=True, help="Caminho do arquivo MP3")
-    parser.add_argument("--letra", required=True, help="Caminho do arquivo de letra (txt)")
-    parser.add_argument("--out", default="legenda.srt", help="Arquivo de saída SRT")
+    parser.add_argument("--audio", required=True, help="Caminho do arquivo MP3 (pasta audio/)")
+    parser.add_argument("--letra", required=True, help="Caminho do arquivo de letra (pasta lyrics/)")
+    parser.add_argument("--out", default=None, help="Arquivo de saída SRT (pasta subtitles/)")
     args = parser.parse_args()
 
     print("Transcrevendo áudio...")
@@ -47,4 +48,6 @@ if __name__ == "__main__":
     letra = ler_letra(args.letra)
     # (Opcional) Alinhar letra com transcrição para melhorar precisão
     # Aqui, apenas salva a transcrição como legenda
-    gerar_srt(segmentos, args.out)
+    out_path = args.out or f"subtitles/{Path(args.audio).stem}.srt"
+    Path("subtitles").mkdir(exist_ok=True)
+    gerar_srt(segmentos, out_path)

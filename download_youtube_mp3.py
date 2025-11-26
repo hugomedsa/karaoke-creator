@@ -23,8 +23,13 @@ def progress_hook(d):
     elif status == 'finished':
         print(f"\nConcluído: {d.get('filename')}")
 
-def download_youtube_audio(video_url: str, output_dir: str = "musicas", trim_seconds: int = 90): # Para audio inteiro, colocar trim_seconds: None
-    outdir = Path(output_dir)
+def download_youtube_audio(video_url: str, trim_seconds: int = None) -> str:
+    """
+    Baixa o áudio de um vídeo do YouTube e salva em 'audio/'.
+    Se trim_seconds for definido, corta o áudio para os primeiros N segundos.
+    Retorna o caminho do arquivo mp3 salvo.
+    """
+    outdir = Path("audio")
     outdir.mkdir(parents=True, exist_ok=True)
 
     ydl_opts = {
@@ -49,27 +54,31 @@ def download_youtube_audio(video_url: str, output_dir: str = "musicas", trim_sec
         final = Path(raw_name).with_suffix('.mp3')
         print(f"Arquivo salvo como: {final}")
 
-        # Se trim_seconds for definido, corta o áudio
         if trim_seconds is not None:
-            try:
-                audio = AudioSegment.from_file(final)
-                audio_cortado = audio[:trim_seconds * 1000]
-                audio_cortado.export(final, format="mp3")
-                print(f"Áudio cortado para {trim_seconds} segundos: {final}")
-            except Exception as e:
-                print(f"Erro ao cortar áudio: {e}")
+            cortar_audio(final, trim_seconds)
         return str(final)
+
+def cortar_audio(audio_path: Path, trim_seconds: int):
+    """
+    Corta o áudio para os primeiros N segundos.
+    """
+    try:
+        audio = AudioSegment.from_file(audio_path)
+        audio_cortado = audio[:trim_seconds * 1000]
+        audio_cortado.export(audio_path, format="mp3")
+        print(f"Áudio cortado para {trim_seconds} segundos: {audio_path}")
+    except Exception as e:
+        print(f"Erro ao cortar áudio: {e}")
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(description="Baixa apenas o áudio de vídeos do YouTube em MP3.")
+    parser = argparse.ArgumentParser(description="Baixa o áudio de vídeos do YouTube em MP3 na pasta 'audio/'.")
     parser.add_argument('url', help='URL do vídeo (YouTube).')
-    parser.add_argument('--out', default='musicas', help='Pasta de saída (padrão: musicas)')
     parser.add_argument('--trim', type=int, default=None, help='Corta o áudio para os primeiros N segundos (ex: 90 para 1m30s)')
     args = parser.parse_args()
 
     print(f"Iniciando download de: {args.url}")
     try:
-        download_youtube_audio(args.url, output_dir=args.out, trim_seconds=args.trim)
+        download_youtube_audio(args.url, trim_seconds=args.trim)
     except Exception as e:
         print("Erro:", e)
