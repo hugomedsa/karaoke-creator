@@ -3,4 +3,4 @@ pydub
 openai-whisper
 srt
 python-dotenv
-requests
+google-generativeai
