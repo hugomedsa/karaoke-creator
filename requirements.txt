@@ -2,4 +2,5 @@ yt-dlp
 pydub
 openai-whisper
 srt
+python-dotenv
 google-generativeai
