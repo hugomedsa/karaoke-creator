@@ -1,3 +1,4 @@
-# Para geração de legendas com IA
+yt-dlp
+pydub
 openai-whisper
 srt
