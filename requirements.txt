@@ -2,3 +2,5 @@ yt-dlp
 pydub
 openai-whisper
 srt
+python-dotenv
+requests
