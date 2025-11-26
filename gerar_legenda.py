@@ -14,11 +14,6 @@ def transcrever_audio(audio_path, model_size="small"):
     result = model.transcribe(str(audio_path), word_timestamps=True)
     return result['segments']
 
-# Função para ler letra da música
-def ler_letra(letra_path):
-    with open(letra_path, encoding="utf-8") as f:
-        return f.read()
-
 
 # Função para gerar legendas SRT a partir dos segmentos
 def gerar_srt(segments, output_path):
@@ -36,18 +31,13 @@ def gerar_srt(segments, output_path):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Gera legenda SRT a partir de áudio MP3 e letra da música.")
+    parser = argparse.ArgumentParser(description="Gera legenda SRT a partir de áudio MP3 usando Whisper.")
     parser.add_argument("--audio", required=True, help="Caminho do arquivo MP3 (pasta audio/)")
-    parser.add_argument("--letra", required=True, help="Caminho do arquivo de letra (pasta lyrics/)")
     parser.add_argument("--out", default=None, help="Arquivo de saída SRT (pasta subtitles/)")
     args = parser.parse_args()
 
     print("Transcrevendo áudio...")
     segmentos = transcrever_audio(args.audio)
-    print("Lendo letra...")
-    letra = ler_letra(args.letra)
-    # (Opcional) Alinhar letra com transcrição para melhorar precisão
-    # Aqui, apenas salva a transcrição como legenda
     out_path = args.out or f"subtitles/{Path(args.audio).stem}.srt"
     Path("subtitles").mkdir(exist_ok=True)
     gerar_srt(segmentos, out_path)
