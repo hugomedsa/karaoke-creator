@@ -1,0 +1,3 @@
+# Para geração de legendas com IA
+openai-whisper
+srt
