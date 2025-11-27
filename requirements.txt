@@ -1,6 +1,7 @@
-yt-dlp
-pydub
+python-dotenv
+google-generativeai
 openai-whisper
 srt
-python-dotenv
-requests
+yt-dlp
+pydub
+whisperx @ git+https://github.com/m-bain/whisperX.git
