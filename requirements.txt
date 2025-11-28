@@ -1,5 +1,3 @@
-python-dotenv
-google-generativeai
 openai-whisper
 srt
 yt-dlp

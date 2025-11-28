@@ -2,5 +2,6 @@ venv
 .env
 audio
 subtitles
-lyrics
 audio_separado
+arq.txt
+karaokes_completos

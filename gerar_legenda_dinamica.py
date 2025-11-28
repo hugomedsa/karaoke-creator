@@ -1,5 +1,5 @@
 """
-gerar_karaoke.py
+gerar_legenda_dinamica.py
 
 Gera um arquivo de legenda de karaokê (.ass) com destaque palavra por palavra.
 
