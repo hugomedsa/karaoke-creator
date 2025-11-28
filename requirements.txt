@@ -5,3 +5,6 @@ srt
 yt-dlp
 pydub
 whisperx @ git+https://github.com/m-bain/whisperX.git
+demucs
+torch==2.1.2+cu121
+torchaudio==2.1.2+cu121 --index-url https://download.pytorch.org/whl/cu121

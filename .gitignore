@@ -1,5 +1,6 @@
 venv
 .env
-lyrics
 audio
 subtitles
+lyrics
+audio_separado
