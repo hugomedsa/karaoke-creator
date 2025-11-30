@@ -20,7 +20,7 @@ from demucs.audio import AudioFile
 import argparse
 from pathlib import Path
 
-def separar_faixas(audio_path, output_dir, model_name="htdemucs_ft"):
+def separar_faixas(audio_path, output_dir, model_name= "htdemucs_6s"): #"htdemucs_ft"):
     """
     Separa as faixas de um arquivo de áudio usando Demucs.
 
@@ -62,18 +62,22 @@ def separar_faixas(audio_path, output_dir, model_name="htdemucs_ft"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Separa instrumental e vocais de um arquivo de áudio usando Demucs.")
-    parser.add_argument("--audio", required=True, help="Caminho do arquivo de áudio (ex: audio/musica.mp3).")
-    parser.add_argument("--out_dir", help="Diretório de saída para as faixas separadas (padrão: audio_separado/nome_da_musica/).")
+    parser.add_argument("--audio", default="audio_base", help="Diretório ou arquivo de áudio (default: audio_base).")
+    parser.add_argument("--out_dir", default="audio_separado", help="Diretório de saída para as faixas separadas (default: audio_separado).")
     args = parser.parse_args()
 
-    audio_file = Path(args.audio)
-    if not audio_file.exists():
-        print(f"Erro: Arquivo de áudio não encontrado em '{audio_file}'")
+    audio_dir = Path(args.audio)
+    audio_files = list(audio_dir.glob("*.mp3"))
+    if not audio_files:
+        print(f"Erro: Nenhum arquivo .mp3 encontrado em '{audio_dir}'")
         exit(1)
+
+    audio_file = audio_files[0]
+    print(f"Usando arquivo de áudio: {audio_file}")
 
     if args.out_dir:
         output_dir = Path(args.out_dir)
     else:
-        output_dir = Path("audio_separado") / audio_file.stem
+        output_dir = Path(args.out_dir) / audio_file.stem
 
     separar_faixas(str(audio_file), str(output_dir))

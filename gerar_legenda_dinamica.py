@@ -96,7 +96,9 @@ def gerar_legenda_karaoke(audio_path, srt_path, output_path):
         output_path (str): Caminho para salvar o arquivo .ass de saída.
     """
     print("Carregando modelo de alinhamento do whisperX...")
-    align_model, metadata = whisperx.load_align_model(language_code="pt", device="cpu")
+    align_model, metadata = whisperx.load_align_model(
+        language_code="pt",
+        device="cuda")
 
     print("Carregando e preparando os segmentos da legenda SRT...")
     segmentos_srt = srt_para_segmentos(srt_path)
@@ -107,7 +109,7 @@ def gerar_legenda_karaoke(audio_path, srt_path, output_path):
         align_model,
         metadata,
         audio_path,
-        "cpu",
+        "cuda",
         return_char_alignments=False
     )
 
@@ -119,22 +121,44 @@ def gerar_legenda_karaoke(audio_path, srt_path, output_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Gera legenda de karaokê (.ass) a partir de áudio e legenda .srt.")
-    parser.add_argument("--audio", required=True, help="Caminho do arquivo de áudio (pasta audio/).")
-    parser.add_argument("--srt", required=True, help="Caminho do arquivo .srt corrigido (pasta subtitles/).")
-    parser.add_argument("--out", help="Arquivo de saída .ass (padrão: na pasta subtitles/).")
+    parser.add_argument("--audio", required=False, help="Caminho do arquivo de áudio (padrão: pasta audio_base/).")
+    parser.add_argument("--srt", required=False, help="Caminho do arquivo .srt corrigido (padrão: pasta subtitle_srt/).")
+    parser.add_argument("--out", default=None, help="Arquivo/pasta de saída .ass (padrão: pasta subtitle_ass/).")
     args = parser.parse_args()
 
-    audio_path = args.audio
-    srt_path = args.srt
-    
-    if args.out:
-        output_path = args.out
-    else:
-        # Cria o caminho de saída na pasta 'subtitles' com o mesmo nome do áudio
-        output_filename = Path(audio_path).stem + ".ass"
-        output_path = Path("subtitles") / output_filename
+    # Verificar pasta audio_base
+    if not args.audio:
+        base_dir = Path("audio_base")
+        if not base_dir.exists():
+            raise FileNotFoundError("Pasta audio_base/ não encontrada.")
+        mp3s = list(base_dir.glob("*.mp3"))
+        if not mp3s:
+            raise FileNotFoundError("Nenhum arquivo .mp3 encontrado na pasta audio_base/")
+        args.audio = str(mp3s[0])
+        print(f"Usando arquivo de áudio: {args.audio}")
 
-    # Garante que o diretório de saída exista
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    # Verificar arquivo SRT
+    if not args.srt:
+        srt_dir = Path("subtitle_srt")
+        if not srt_dir.exists():
+            raise FileNotFoundError("Pasta subtitle_srt/ não encontrada.")
+        
+        audio_stem = Path(args.audio).stem
+        srt_file = srt_dir / f"{audio_stem}.srt"
+        if not srt_file.exists():
+            raise FileNotFoundError(f"Arquivo {srt_file} não encontrado.")
+        args.srt = str(srt_file)
 
-    gerar_legenda_karaoke(audio_path, srt_path, str(output_path))
+    # Criar pasta de saída apenas se não existir
+    out_dir = Path("subtitle_ass")
+    if not out_dir.exists():
+        out_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Pasta de saída criada: {out_dir}")
+
+    # Definir caminho de saída
+    if not args.out:
+        audio_stem = Path(args.audio).stem
+        args.out = str(out_dir / f"{audio_stem}.ass")
+
+    print(f"Processando: {args.audio} -> {args.srt} -> {args.out}")
+    gerar_legenda_karaoke(args.audio, args.srt, args.out)

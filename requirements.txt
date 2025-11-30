@@ -1,8 +1,30 @@
-openai-whisper
-srt
-yt-dlp
+# Base ML
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+# ou
+# pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
+# and
+# pip install torchvision==0.24.1
+
+# Gerar legenda ASS:
+# pip install --no-deps git+https://github.com/m-bain/whisperx.git
+# Gerar legenda SRT:
+# pip install --no-deps openai-whisper
+
+# Geral
+yt_dlp
 pydub
-whisperx @ git+https://github.com/m-bain/whisperX.git
+srt
+transformers
+librosa
+
+# Demucs (separar instrumental)
 demucs
-torch==2.1.2+cu121
-torchaudio==2.1.2+cu121 --index-url https://download.pytorch.org/whl/cu121
+
+av<16.0.0
+ctranslate2>=4.5.0
+faster-whisper>=1.1.1
+nltk>=3.9.1
+pandas>=2.2.3,<2.3.0
+pyannote-audio>=3.3.2,<4.0.0
+more-itertools
+tiktoken

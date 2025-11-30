@@ -1,7 +1,13 @@
 venv
 .env
-audio
-subtitles
+audio_base
+subtitle_ass
+subtitle_srt
 audio_separado
 arq.txt
 karaokes_completos
+lyrics
+audio_base
+audio_separado
+karaokes_completos
+video_oficial
