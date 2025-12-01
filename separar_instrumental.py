@@ -67,17 +67,30 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     audio_dir = Path(args.audio)
+    
+    # Se o argumento for um arquivo, usa-o. Se for um diretório, pega o primeiro mp3.
+    if audio_dir.is_file():
+        audio_file = audio_dir
+    elif audio_dir.is_dir():
+        audio_files = list(audio_dir.glob("*.mp3"))
+        if not audio_files:
+            print(f"Erro: Nenhum arquivo .mp3 encontrado em '{audio_dir}'")
+            sys.exit(1)
+        audio_file = audio_files[0]
+    else:
+        print(f"Erro: O caminho especificado '{audio_dir}' não é um arquivo ou diretório válido.")
+        sys.exit(1)
     audio_files = list(audio_dir.glob("*.mp3"))
     if not audio_files:
         print(f"Erro: Nenhum arquivo .mp3 encontrado em '{audio_dir}'")
         exit(1)
-
     audio_file = audio_files[0]
+
     print(f"Usando arquivo de áudio: {audio_file}")
 
-    if args.out_dir:
-        output_dir = Path(args.out_dir)
-    else:
-        output_dir = Path(args.out_dir) / audio_file.stem
+    output_dir_base = Path(args.out_dir)    
+    output_dir = output_dir_base / audio_file.stem
+
+    print(f"As faixas serão salvas em: {output_dir}")
 
     separar_faixas(str(audio_file), str(output_dir))

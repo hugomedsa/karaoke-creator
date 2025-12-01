@@ -1,12 +1,13 @@
 """
-criar_video_karaoke.py
+video_karaoke_join_all.py
 
-Combina automaticamente as faixas instrumentais (tudo exceto vocals.wav) 
-com legendas .ass para criar vídeos MP4 de karaokê completos.
+Combina automaticamente as faixas instrumentais (tudo exceto vocals.wav),
+uma imagem de fundo e legendas .ass para criar vídeos MP4 de karaokê completos.
 
 Funcionamento automático:
 - Procura por pastas em audio_separado/
-- Usa legendas da pasta subtitles/
+- Usa legendas da pasta subtitle_ass/
+- Usa a imagem karaoke-hugo.jpg como padrão
 - Salva vídeos em karaokes_completos/
 
 Requisitos:
@@ -36,7 +37,7 @@ def combinar_faixas_instrumentais(pasta_audio_separado, arquivo_saida_audio):
     for arquivo in pasta_audio_separado.glob("*.wav"):
         if arquivo.name != "vocals.wav":
             arquivos_audio.append(arquivo)
-            print(f"  - Adicionando: {arquivo.name}")
+            print(f"  - Adicionando: {arquivo.name}")
     
     if not arquivos_audio:
         raise ValueError(f"Nenhuma faixa instrumental encontrada em {pasta_audio_separado}")
@@ -54,36 +55,54 @@ def combinar_faixas_instrumentais(pasta_audio_separado, arquivo_saida_audio):
     audio_combinado.export(arquivo_saida_audio, format="mp3", bitrate="128k")
     print(f"Áudio instrumental combinado salvo em: {arquivo_saida_audio}")
 
-def criar_video_com_legenda(arquivo_audio, arquivo_legenda, arquivo_saida_video):
+# CORREÇÃO CRÍTICA: Adicionado 'arquivo_imagem' na definição da função
+def criar_video_com_legenda(arquivo_audio, arquivo_legenda, arquivo_saida_video, arquivo_imagem):
     """
-    Cria um vídeo MP4 com áudio instrumental e legenda .ass embutida.
+    Cria um vídeo MP4 com áudio instrumental, imagem de fundo estática e legenda .ass embutida.
     
     Args:
         arquivo_audio (Path): Arquivo de áudio combinado
         arquivo_legenda (Path): Arquivo de legenda .ass
         arquivo_saida_video (Path): Caminho para salvar o vídeo final
+        arquivo_imagem (Path): Arquivo de imagem a ser usado como fundo
     """
-    print(f"Criando vídeo com legenda...")
-    
-    # Comando ffmpeg para criar vídeo com áudio e legenda
+    print(f"Criando vídeo com imagem e legenda...")
+
+    # 1. Obter a duração do áudio
+    try:
+        duracao_audio_cmd = [
+            "ffprobe",
+            "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            str(arquivo_audio)
+        ]
+        duracao_segundos = subprocess.check_output(duracao_audio_cmd).decode('utf-8').strip()
+    except subprocess.CalledProcessError:
+        print("Erro: Não foi possível obter a duração do áudio com ffprobe.")
+        raise
+
+    # 2. Comando ffmpeg CORRIGIDO
     comando = [
         "ffmpeg",
-        "-y",  # Sobrescrever arquivo existente
-        "-i", str(arquivo_audio),  # Arquivo de áudio de entrada
-        "-vf", f"ass={arquivo_legenda}",  # Filtro de vídeo para a legenda
-        "-c:a", "aac",  # Codec de áudio
-        "-b:a", "128k",  # Bitrate de áudio
+        "-y",               # Sobrescrever arquivo existente
+        "-loop", "1",       # Loop na imagem deve vir antes da imagem
+        "-i", str(arquivo_imagem),  # 1ª entrada: A imagem (input 0)
+        "-i", str(arquivo_audio),   # 2ª entrada: O áudio (input 1)
+        "-t", duracao_segundos,     # Define a duração total
+        "-vf", f"scale=1280:-2,format=yuv420p,ass={arquivo_legenda}",
+        "-c:a", "aac",      # Codec de áudio
+        "-b:a", "128k",
         "-c:v", "libx264",  # Codec de vídeo
-        "-preset", "medium",  # Preset de encoding
-        "-crf", "23",  # Qualidade do vídeo
-        "-pix_fmt", "yuv420p",  # Formato de pixel compatível
-        "-shortest",  # Terminar quando o áudio acabar
+        "-preset", "medium",
+        "-crf", "23",
+        "-shortest",
         str(arquivo_saida_video)
     ]
-    
+
     try:
         print("Executando ffmpeg... (isso pode levar alguns minutos)")
-        resultado = subprocess.run(comando, check=True, capture_output=True, text=True)
+        subprocess.run(comando, check=True, capture_output=True, text=True)
         print(f"Vídeo criado com sucesso: {arquivo_saida_video}")
     except subprocess.CalledProcessError as e:
         print(f"Erro ao executar ffmpeg: {e}")
@@ -95,7 +114,7 @@ def encontrar_musicas_e_legendas():
     
     # Criar pastas se não existirem
     Path("audio_separado").mkdir(exist_ok=True)
-    Path("subtitles").mkdir(exist_ok=True)
+    Path("subtitle_ass").mkdir(exist_ok=True) # Usando o novo nome da pasta
     Path("karaokes_completos").mkdir(exist_ok=True)
     
     print("🔍 Procurando músicas e legendas...")
@@ -107,11 +126,11 @@ def encontrar_musicas_e_legendas():
         if pasta_audio.is_dir():
             nome_musica = pasta_audio.name
             
-            # Verificar se existe legenda correspondente
+            # Verificar se existe legenda correspondente na pasta subtitle_ass
             possiveis_legendas = [
-                Path("subtitles") / f"{nome_musica}.ass",
-                Path("subtitles") / f"{nome_musica}_legenda.ass",
-                Path("subtitles") / f"{nome_musica}_subtitles.ass"
+                Path("subtitle_ass") / f"{nome_musica}.ass",
+                Path("subtitle_ass") / f"{nome_musica}_legenda.ass",
+                Path("subtitle_ass") / f"{nome_musica}_subtitles.ass"
             ]
             
             legenda_encontrada = None
@@ -122,15 +141,17 @@ def encontrar_musicas_e_legendas():
             
             if legenda_encontrada:
                 pares.append((pasta_audio, legenda_encontrada, nome_musica))
-                print(f"  ✅ {nome_musica} - legenda encontrada")
+                print(f"  ✅ {nome_musica} - legenda encontrada")
             else:
-                print(f"  ⚠️  {nome_musica} - nenhuma legenda encontrada")
+                print(f"  ⚠️  {nome_musica} - nenhuma legenda encontrada em 'subtitle_ass/'")
     
     return pares
 
 def main():
     parser = argparse.ArgumentParser(description="Cria vídeos de karaokê automaticamente combinando faixas instrumentais e legendas .ass")
     parser.add_argument("--musica", help="Nome específico da música para processar (opcional)")
+    # NOVO ARGUMENTO: Imagem de fundo opcional
+    parser.add_argument("--imagem", required=False, help="Caminho do arquivo de imagem de fundo (padrão: karaoke-hugo.jpg).")
     
     args = parser.parse_args()
     
@@ -141,7 +162,7 @@ def main():
         print("❌ Nenhuma música com legenda encontrada!")
         print("\n📋 Estrutura esperada:")
         print("audio_separado/nome_da_musica/ [com arquivos .wav separados]")
-        print("subtitles/nome_da_musica.ass [arquivo de legenda]")
+        print("subtitle_ass/nome_da_musica.ass [arquivo de legenda]") # CORREÇÃO: nome da pasta
         sys.exit(1)
     
     # Filtrar por música específica se solicitado
@@ -152,12 +173,22 @@ def main():
             sys.exit(1)
     
     print(f"\n🎵 Encontradas {len(pares)} música(s) com legendas:")
+
+    # Definir o caminho da imagem de fundo com fallback (lógica automática)
+    ARQUIVO_IMAGEM_FUNDO = Path(args.imagem) if args.imagem else Path("karaoke-hugo.jpg")
     
+    if not ARQUIVO_IMAGEM_FUNDO.exists():
+        print(f"❌ Erro: Imagem de fundo '{ARQUIVO_IMAGEM_FUNDO}' não encontrada.")
+        print("Certifique-se de que a imagem 'karaoke-hugo.jpg' ou a imagem especificada exista no diretório de execução.")
+        sys.exit(1)
+        
+    print(f"🖼️ Usando imagem de fundo: {ARQUIVO_IMAGEM_FUNDO}")
+
     # Processar cada música
     for pasta_audio, arquivo_legenda, nome_musica in pares:
         print(f"\n🎤 Processando: {nome_musica}")
-        print(f"   Áudio: {pasta_audio}")
-        print(f"   Legenda: {arquivo_legenda}")
+        print(f"   Áudio: {pasta_audio}")
+        print(f"   Legenda: {arquivo_legenda}")
         
         # Caminhos dos arquivos
         pasta_saida = Path("karaokes_completos")
@@ -167,14 +198,15 @@ def main():
         # Processar
         try:
             combinar_faixas_instrumentais(pasta_audio, arquivo_audio_temp)
-            criar_video_com_legenda(arquivo_audio_temp, arquivo_legenda, arquivo_video_final)
+            # Passar o caminho da imagem
+            criar_video_com_legenda(arquivo_audio_temp, arquivo_legenda, arquivo_video_final, ARQUIVO_IMAGEM_FUNDO)
             
             # Limpar arquivo temporário
             arquivo_audio_temp.unlink()
-            print(f"   ✅ Vídeo salvo em: {arquivo_video_final}")
+            print(f"   ✅ Vídeo salvo em: {arquivo_video_final}")
             
         except Exception as e:
-            print(f"   ❌ Erro ao processar {nome_musica}: {e}")
+            print(f"   ❌ Erro ao processar {nome_musica}: {e}")
             # Limpar arquivo temporário em caso de erro
             if arquivo_audio_temp.exists():
                 arquivo_audio_temp.unlink()

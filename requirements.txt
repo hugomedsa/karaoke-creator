@@ -1,9 +1,10 @@
 # Base ML
-# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+# pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+# pip install torchaudio==2.9.1+cu126 --index-url https://download.pytorch.org/whl/cu126
 # ou
-# pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
-# and
-# pip install torchvision==0.24.1
+# pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+# ou
+# pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # Gerar legenda ASS:
 # pip install --no-deps git+https://github.com/m-bain/whisperx.git
@@ -16,6 +17,7 @@ pydub
 srt
 transformers
 librosa
+torchcodec
 
 # Demucs (separar instrumental)
 demucs
