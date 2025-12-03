@@ -16,6 +16,5 @@ srt
 transformers
 librosa
 
-
 # Demucs (separar instrumental)
 demucs
