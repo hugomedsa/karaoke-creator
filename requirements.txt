@@ -1,17 +1,13 @@
-# Base ML
-# pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu126
-# and
-# pip install --no-deps torchvision==0.24.1
+# Verifique as compatibilidades em https://pytorch.org/get-started/previous-versions/
 
-# ou
-# pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
-# ou
-# pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Base Torch
+# Windows ou Linux com GPU CUDA 12.8: pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
 
 # Gerar legenda ASS:
-# pip install --no-deps git+https://github.com/m-bain/whisperx.git
-# Gerar legenda SRT:
-# pip install --no-deps openai-whisper
+# pip install git+https://github.com/m-bain/whisperx.git -c constraints.txt
+
+# Gerar legenda SRT: 
+# pip install openai-whisper -c constraints.txt
 
 # Geral
 yt_dlp
@@ -19,16 +15,7 @@ pydub
 srt
 transformers
 librosa
-torchcodec
+
 
 # Demucs (separar instrumental)
 demucs
-
-av<16.0.0
-ctranslate2>=4.5.0
-faster-whisper>=1.1.1
-nltk>=3.9.1
-pandas>=2.2.3,<2.3.0
-pyannote-audio>=3.3.2,<4.0.0
-more-itertools
-tiktoken

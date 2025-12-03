@@ -83,7 +83,7 @@ def criar_video_com_legenda(arquivo_audio, arquivo_legenda, arquivo_saida_video,
         raise
 
     # 2. Comando ffmpeg CORRIGIDO
-    comando = [
+    comando_base = [
         "ffmpeg",
         "-y",               # Sobrescrever arquivo existente
         "-loop", "1",       # Loop na imagem deve vir antes da imagem
@@ -93,16 +93,22 @@ def criar_video_com_legenda(arquivo_audio, arquivo_legenda, arquivo_saida_video,
         "-vf", f"scale=1280:-2,format=yuv420p,ass={arquivo_legenda}",
         "-c:a", "aac",      # Codec de áudio
         "-b:a", "128k",
-        "-c:v", "libx264",  # Codec de vídeo
-        "-preset", "medium",
-        "-crf", "23",
         "-shortest",
-        str(arquivo_saida_video)
+        str(arquivo_saida_video),
+        # "-c:v", "libx264",
+        # "-preset", "medium",
+        # "-crf", "23",
+        "-c:v", "h264_nvenc",
+        "-preset", "p4",        # p1-p7 (p4=balanço bom)
+        "-cq", "21",            # Qualidade (0-51, menor=melhor)
+        "-rc", "vbr",
+        "-b:v", "5M",           # Bitrate máximo
+        "-gpu", "0",            # ID da GPU
     ]
 
     try:
         print("Executando ffmpeg... (isso pode levar alguns minutos)")
-        subprocess.run(comando, check=True, capture_output=True, text=True)
+        subprocess.run(comando_base, check=True, capture_output=True, text=True)
         print(f"Vídeo criado com sucesso: {arquivo_saida_video}")
     except subprocess.CalledProcessError as e:
         print(f"Erro ao executar ffmpeg: {e}")

@@ -10,9 +10,9 @@ import srt
 from pathlib import Path
 
 # Função para transcrever áudio e obter segmentos
-def transcrever_audio(audio_path, model_size="large-v3"): #try "medium" and large-v3
+def transcrever_audio(audio_path, model_size="small"): #try "medium" and large-v3
     model = whisper.load_model(model_size)
-    result = model.transcribe(str(audio_path), word_timestamps=True)
+    result = model.transcribe(str(audio_path), word_timestamps=True, language="pt")
     return result['segments']
 
 

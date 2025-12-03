@@ -32,14 +32,19 @@ Add-Content $out "`n`n============================================"
 Add-Content $out "CONTEÚDO DOS ARQUIVOS (.py e .txt)"
 Add-Content $out "============================================`n"
 
-# ---------- 2) Conteúdo dos arquivos .py e .txt (exceto venv) ----------
+# ---------- 2) Conteúdo dos arquivos .py e .txt (exceto venv e o próprio arquivo de saída) ----------
 Get-ChildItem -Path . -Include *.py, *.txt -Recurse -File |
-    Where-Object { $_.FullName -notmatch '\\venv\\.*' } |
+    Where-Object { 
+        $_.FullName -notmatch '\\venv\\.*' -and 
+        $_.FullName -notmatch [regex]::Escape($out) 
+    } |
     Sort-Object FullName |
     ForEach-Object {
-        Add-Content $out "`n" + ("=" * 60)
-        Add-Content $out "ARQUIVO: $($_.FullName)"
-        Add-Content $out ("=" * 60) + "`n"
+        # Constrói os separadores ANTES de usar no Add-Content
+        $separator = "=" * 60
+        $header = "`n$separator`nARQUIVO: $($_.FullName)`n$separator`n"
+        
+        Add-Content $out $header
         
         try {
             $content = Get-Content $_.FullName -ErrorAction Stop
@@ -51,6 +56,8 @@ Get-ChildItem -Path . -Include *.py, *.txt -Recurse -File |
         } catch {
             Add-Content $out "[ERRO AO LER ARQUIVO: $($_.Exception.Message)]"
         }
+        
+        Add-Content $out "`n"  # Linha em branco entre arquivos
     }
 
 Write-Host "Arquivo gerado: $out" -ForegroundColor Green
